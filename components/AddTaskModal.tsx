@@ -22,13 +22,15 @@ type Props = {
     onClose: () => void;
     onSave: (task: Task) => void;
     initialTask?: Task | null;
+    mode?: 'add' | 'edit' | 'copy';
+
 };
 
 const DEFAULT_TASK: Task = {
     id: '', title: '', duration: '1h 30m', icon: '✨', iconBg: '#F3F4F6', iconColor: '#000', isCompleted: false, originalSection: 'morning', subTasks: []
 };
 
-export default function AddTaskModal({ visible, onClose, onSave, initialTask }: Props) {
+export default function AddTaskModal({ visible, onClose, onSave, initialTask, mode = 'add' }: Props) {
     const [taskData, setTaskData] = useState<Task>(DEFAULT_TASK);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [hour, setHour] = useState(1);
@@ -43,12 +45,35 @@ export default function AddTaskModal({ visible, onClose, onSave, initialTask }: 
     const tagEditRef = useRef<BottomSheetModal>(null);
     const tagCreateRef = useRef<BottomSheetModal>(null);
 
+    // useEffect(() => {
+    //     if (visible) {
+    //         if (initialTask) {
+    //             setTaskData(initialTask);
+
+    //         } else {
+    //             setTaskData({ ...DEFAULT_TASK, id: `new-${Date.now()}` });
+    //             setSelectedDate(new Date());
+    //             setSelectedTags([]);
+    //             setHour(1);
+    //             setMin(30);
+    //         }
+    //     }
+    // }, [visible, initialTask]);
     useEffect(() => {
         if (visible) {
-            if (initialTask) {
+            if (mode === 'edit' && initialTask) {
+                // EDIT: Load exact task data
                 setTaskData(initialTask);
-
+            } else if (mode === 'copy' && initialTask) {
+                // COPY: Load data but generate new ID and append (Copy) to title if desired
+                setTaskData({
+                    ...initialTask,
+                    id: `new-${Date.now()}`, // Force new ID
+                    // Optional: Auto-append (Copy) if not handled by parent
+                    title: initialTask.title.includes('(Copy)') ? initialTask.title : `${initialTask.title} (Copy)`
+                });
             } else {
+                // ADD: Reset to defaults
                 setTaskData({ ...DEFAULT_TASK, id: `new-${Date.now()}` });
                 setSelectedDate(new Date());
                 setSelectedTags([]);
@@ -56,7 +81,7 @@ export default function AddTaskModal({ visible, onClose, onSave, initialTask }: 
                 setMin(30);
             }
         }
-    }, [visible, initialTask]);
+    }, [visible, initialTask, mode]);
 
     const handleSave = () => {
         if (!taskData.title.trim()) return;
@@ -103,6 +128,12 @@ export default function AddTaskModal({ visible, onClose, onSave, initialTask }: 
         setTimeout(() => tagCreateRef.current?.present(), 200);
     };
 
+    const getModalTitle = () => {
+        if (mode === 'edit') return 'Edit task';
+        if (mode === 'copy') return 'Copy task';
+        return 'Add task';
+    };
+
     return (
         <Modal visible={visible} animationType="slide" transparent={false}>
             <GestureHandlerRootView style={{ flex: 1 }}>
@@ -115,13 +146,16 @@ export default function AddTaskModal({ visible, onClose, onSave, initialTask }: 
                                     <TouchableOpacity onPress={onClose} className="w-10 h-10 bg-white rounded-full items-center justify-center border border-gray-200">
                                         <Ionicons name="close" size={24} color="black" />
                                     </TouchableOpacity>
-                                    <Text className="text-lg font-bold text-[#1C1C1E]">{initialTask ? 'Edit task' : 'Add task'}</Text>
+                                    {/* <Text className="text-lg font-bold text-[#1C1C1E]">{initialTask ? 'Edit task' : 'Add task'}</Text> */}
+                                    <Text className="text-lg font-bold text-[#1C1C1E]">
+                                        {getModalTitle()}
+                                    </Text>
                                     <TouchableOpacity onPress={handleSave} className="w-10 h-10 bg-purple-500 rounded-full items-center justify-center">
                                         <Ionicons name="checkmark" size={24} color="white" />
                                     </TouchableOpacity>
                                 </View>
 
-                                <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 300 }} keyboardShouldPersistTaps="handled">
+                                <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled">
                                     {/* Task Name & Icon */}
                                     <View className="bg-white p-4 rounded-2xl mb-4 shadow-sm border border-gray-50 flex-row items-center justify-between">
                                         <TextInput

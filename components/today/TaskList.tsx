@@ -9,6 +9,8 @@ type Props = {
     onTaskPress: (task: Task) => void;
     onToggleParentTask: (task: Task, section: keyof DailyData) => void;
     onSubTaskToggle: (parentTask: Task, subId: string, section: keyof DailyData) => void;
+    onAddPress: () => void;
+
 };
 
 const SectionHeader = ({ label, count }: { label: string; count: number }) => {
@@ -34,8 +36,11 @@ const SectionHeader = ({ label, count }: { label: string; count: number }) => {
     );
 };
 
-const EmptySlot = ({ placeholder }: { placeholder: string }) => (
-    <TouchableOpacity className="flex-row items-center justify-between p-4 border border-dashed border-gray-200 rounded-2xl mb-2 active:bg-gray-50">
+// const EmptySlot = ({ placeholder }: { placeholder: string }) => (
+const EmptySlot = ({ placeholder, onPress }: { placeholder: string; onPress: () => void }) => (
+    <TouchableOpacity
+        onPress={onPress}
+        className="flex-row items-center justify-between p-4 border border-dashed border-gray-200 rounded-2xl mb-2 active:bg-gray-50">
         <Text className="text-gray-400 font-medium text-sm">{placeholder}</Text>
         <View className="bg-gray-100 rounded-full p-1">
             <Ionicons name="add" size={16} color="#9CA3AF" />
@@ -43,7 +48,7 @@ const EmptySlot = ({ placeholder }: { placeholder: string }) => (
     </TouchableOpacity>
 );
 
-export default function TaskList({ dailyData, onTaskPress, onToggleParentTask, onSubTaskToggle }: Props) {
+export default function TaskList({ dailyData, onTaskPress, onToggleParentTask, onSubTaskToggle, onAddPress }: Props) {
     return (
         <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
             {/* Hint Card */}
@@ -79,7 +84,8 @@ export default function TaskList({ dailyData, onTaskPress, onToggleParentTask, o
                                 />
                             ))
                         ) : (
-                            <EmptySlot placeholder={`${label} tasks here`} />
+                            <EmptySlot onPress={onAddPress}
+                                placeholder={`${label} tasks here`} />
                         )}
                     </View>
                 )
